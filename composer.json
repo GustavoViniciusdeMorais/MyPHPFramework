@@ -1,0 +1,15 @@
+{
+    "name": "gustavovinicius/mkfig",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Gustavovinicius\\Mkfig\\": "src/"
+        }
+    },
+    "authors": [{
+        "name": "Gustavo Vinicius"
+    }],
+    "require": {
+        "illuminate/support": "^9.42"
+    }
+}
