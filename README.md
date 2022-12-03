@@ -122,4 +122,4 @@ class RouterCollection
 }
 ```
 
-![TDD](/imgs/tddLaravel.png)
+![TDD](/imgs/routeExample.png)
