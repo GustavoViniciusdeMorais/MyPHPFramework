@@ -2,6 +2,10 @@
 
 This framework is a route system.
 
+```
+php -S 0.0.0.0:8000
+```
+
 Created by: Gustavo Vinicius
 
 ```
