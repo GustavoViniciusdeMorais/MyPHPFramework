@@ -2,17 +2,26 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
+use Gustavovinicius\Mkfig\Routes\Router;
+use Gustavovinicius\Mkfig\DependencyInjection\Resolver;
+
 $pathInfo = $_SERVER['PATH_INFO'] ?? '/';
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 // print_r(json_encode([$pathInfo, $requestMethod]));
 // exit;
 
-$router = new Gustavovinicius\Mkfig\Routes\Router($pathInfo, $requestMethod);
+$router = new Router($pathInfo, $requestMethod);
 
-$router->get('/test/{id}', function ($params) {
-    return ' asdfasdfasd ddd ' . $params[1];
-});
+require __DIR__ . '/router.php';
 
 $result = $router->run();
-var_dump($result['callback']($result['params']));
+
+$data = (new Resolver)->method(
+    $result['callback'],
+    [
+        'params' => $result['params']
+    ]
+);
+
+var_dump($data);
