@@ -30,25 +30,25 @@ class Router
         $verbRoutes = $this->collection->filter($this->method);
 
         foreach ($verbRoutes as $routePath => $routeCallBack) {
-            $result = $this->checkUrl($routePath, $this->path);
+            $urlParams = $this->getUrlParams($routePath, $this->path);
 
             $callback = $routeCallBack;
-            if ($result['result']) {
+            if ($urlParams['result']) {
                 break;
             }
         }
 
-        if (!$result['result']) {
+        if (!$urlParams['result']) {
             $callback = null;
         }
 
         return [
-            'params' => $result['params'],
+            'params' => $urlParams['params'],
             'callback' => $callback
         ];
     }
 
-    public function checkUrl(string $routePath, $requestPath)
+    public function getUrlParams(string $routePath, $requestPath)
     {
         preg_match_all('/\{\w*\}/', $routePath, $routeParams);
 
