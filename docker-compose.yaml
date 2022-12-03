@@ -22,6 +22,8 @@ services:
             dockerfile: php.dockerfile
         volumes:
             - ./:/var/www/html
+        ports:
+            - 8000:8000
         container_name: php
         networks:
             - app-network
