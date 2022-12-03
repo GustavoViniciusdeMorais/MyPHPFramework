@@ -2,13 +2,16 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
+use Gustavovinicius\Mkfig\Routes\Router;
 
-use Gustavovinicius\Mkfig\Renderer\PHPRenderer;
+$pathInfo = $_SERVER['PATH_INFO'] ?? '/';
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-$app = new Gustavovinicius\Mkfig\App();
+$router = new Router($pathInfo, $requestMethod);
 
-$app->setRender(new PHPRenderer);
+$router->get('/gustavo/{id}', function ($params) {
+    return 'called route gustavo, with data = ' . $params[1];
+});
 
-require __DIR__ . '/router.php';
-
-$app->run();
+$result = $router->run();
+var_dump($result['callback']($result['params']));

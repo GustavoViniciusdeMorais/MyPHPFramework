@@ -20,11 +20,6 @@ class Router
         $this->request('GET', $path, $callback);
     }
 
-    public function post($path, $callback)
-    {
-        $this->request('POST', $path, $callback);
-    }
-
     public function request($method, $path, $callback)
     {
         $this->collection->add($method, $path, $callback);
@@ -32,12 +27,12 @@ class Router
 
     public function run()
     {
-        $data = $this->collection->filter($this->method);
+        $verbRoutes = $this->collection->filter($this->method);
 
-        foreach ($data as $key => $value) {
-            $result = $this->checkUrl($key, $this->path);
+        foreach ($verbRoutes as $routePath => $routeCallBack) {
+            $result = $this->checkUrl($routePath, $this->path);
 
-            $callback = $value;
+            $callback = $routeCallBack;
             if ($result['result']) {
                 break;
             }
@@ -53,19 +48,15 @@ class Router
         ];
     }
 
-    public function checkUrl(string $needle, $subject)
+    public function checkUrl(string $routePath, $requestPath)
     {
-        preg_match_all('/\{([^\}]*)\}/', $needle, $variables);
+        preg_match_all('/\{\w*\}/', $routePath, $routeParams);
 
-        $regex = str_replace('/', '\/', $needle);
+        $regex = str_replace('/', '\/', $routePath);
 
-        foreach ($variables[1] as $key => $variable) {
-            $as = explode(':', $variable);
-            $replacement = $as[1] ?? '([a-zA-Z0-9\-\_\s]+)';
-            $regex = str_replace($variables[$key], $replacement, $regex);
-        }
-        $regex = preg_replace('/{([a-zA-Z]+)}/', '([a-zA-Z0-9+])', $regex);
-        $result = preg_match('/^' . $regex . '$/', $subject, $params);
+        $regex = preg_replace('/{([a-zA-Z]+)}/', '([a-zA-Z0-9]+)', $regex);
+
+        $result = preg_match('/^' . $regex . '$/', $requestPath, $params);
 
         return compact('result', 'params');
     }

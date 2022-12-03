@@ -8,58 +8,118 @@ php -S 0.0.0.0:8000
 
 Created by: Gustavo Vinicius
 
-```
-/etc/init.d/mysql stop
+### ./app.php
+```php
+require __DIR__ . '/vendor/autoload.php';
 
-sudo docker-compose up -d --build
-sudo docker exec -it [-u 0] [container_name] sh
-sudo docker-compose down
+use Gustavovinicius\Mkfig\Routes\Router;
 
-sudo docker inspect [CONTAINER_ID] | grep IP
+$pathInfo = $_SERVER['PATH_INFO'] ?? '/';
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-chmod +x composer.sh
-./composer.sh
+$router = new Router($pathInfo, $requestMethod);
 
-composer create-project laravel/laravel:^8.0 appname
+$router->get('/gustavo/{id}', function ($params) {
+    return 'called route gustavo, with data = ' . $params[1];
+});
 
-cp -R appname/* .
-rm -rf appname/
-
-php artisan key:generate
-
-chmod +x clearcash.sh
-./clearcash.sh
-
-php artisan key:generate
-
-php artisan db:seed --class=GroupSeeder
-
-php artisan db:seed --class=UserSeeder
-
-sudo git remote set-url origin https://[token]@github.com/Repository
+$result = $router->run();
+var_dump($result['callback']($result['params']));
 ```
 
-### Laravel 8
+### ./src/Routes/Router.php
+```php
+namespace Gustavovinicius\Mkfig\Routes;
 
-- Configurations
-    - Cop the .env file and setup the mysql IP container and auth data
+class Router
+{
+    private $collection;
+    private $path;
+    private $method;
 
-### TDD Laravel 8
+    public function __construct(string $path, string $method)
+    {
+        $this->collection = new RouterCollection();
+        $this->path = $path;
+        $this->method = $method;
+    }
 
-- Steps:
-    - php artisan make:test BasicTest
-        - This class will be at tests/Feature/ folder.
-    - chmod -R 777 ./
-    - chmod +x composer.sh
-    - ./composer.sh
-    - Import the class to be tested into the Test class.
-    - Rename the BasicTest method.
-    - Inside the method write the test.
-        - Use $this->assertEquals('RESULT', $result);
-    - Run the command php artisan test
+    public function get($path, $callback)
+    {
+        $this->request('GET', $path, $callback);
+    }
 
+    public function request($method, $path, $callback)
+    {
+        $this->collection->add($method, $path, $callback);
+    }
+
+    public function run()
+    {
+        $verbRoutes = $this->collection->filter($this->method);
+
+        foreach ($verbRoutes as $routePath => $routeCallBack) {
+            $result = $this->checkUrl($routePath, $this->path);
+
+            $callback = $routeCallBack;
+            if ($result['result']) {
+                break;
+            }
+        }
+
+        if (!$result['result']) {
+            $callback = null;
+        }
+
+        return [
+            'params' => $result['params'],
+            'callback' => $callback
+        ];
+    }
+
+    public function checkUrl(string $routePath, $requestPath)
+    {
+        preg_match_all('/\{\w*\}/', $routePath, $routeParams);
+
+        $regex = str_replace('/', '\/', $routePath);
+
+        $regex = preg_replace('/{([a-zA-Z]+)}/', '([a-zA-Z0-9]+)', $regex);
+
+        $result = preg_match('/^' . $regex . '$/', $requestPath, $params);
+
+        return compact('result', 'params');
+    }
+}
 ```
-php artisan test
+
+### ./src/Routes/RouterCollection.php
+```php
+namespace Gustavovinicius\Mkfig\Routes;
+
+use Illuminate\Support\Collection;
+
+class RouterCollection
+{
+    protected $collection = [];
+
+    public function add(string $method, string $path, $callback)
+    {
+        if (!isset($this->collection[$method])) {
+            $this->collection[$method] = new Collection();
+        }
+    
+        $this->collection[$method]->put($path, $callback);
+    }
+
+    public function filter($method)
+    {
+        if (!isset($this->collection[$method])) {
+            $this->collection[$method] = new Collection();
+        }
+    
+        return $this->collection[$method];
+    }
+}
 ```
 
 ![TDD](/imgs/tddLaravel.png)
